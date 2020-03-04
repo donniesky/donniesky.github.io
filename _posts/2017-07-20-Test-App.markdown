@@ -1,0 +1,112 @@
+---
+layout:     post
+title:		"应用测试"
+subtitle:   "Android Studio 以简化测试为设计宗旨。 我们只需完成几次点击，便可建立一个在本地 JVM 上运行的 JUnit 测试，或建立一个在设备上运行的模拟测试。"
+date:       2017-07-20 14:40:00
+author:     "donnieSky"
+catalog:	true
+header-img: "img/post-bg-js-module.jpg"
+tags:
+    - Android
+    - Testing
+---
+
+> Android Studio 以简化测试为设计宗旨。 我们只需完成几次点击，便可建立一个在本地 JVM 上运行的 JUnit 测试，或建立一个在设备上运行的模拟测试。
+
+当然我们也可以通过集成测试框架来扩展测试方案，例如我们可以集成`Mockito`在本地单元测试中测试`Android API`调用，以及集成`Espresso`或`UI Automator`在模拟测试中模拟用户交互。
+
+可以利用`Espresso-test-recorder`自动生成`Espresso`测试。
+
+## 测试类型和位置
+回顾上篇博客[Android测试入门](https://donniesky.me/2017/07/19/Android-Start-Testing/#测试类型)
+
+*补充*：
+* 本地单元测试
+    * 在运行时，这些测试的执行对象是去掉了所有`final`修饰符的修改版`android.jar`,这样一来，我们就可以使用`Mockito`等相关常见的模拟库。
+* 模拟测试
+    * 由于模拟测试内置于APK中（与我们的应用分离）,因此它们必须拥有自己的`AndroidManifest.xml`文件，不过由于`Gradle`会自动在构建时生成该文件，因此它在我们的项目目录中是不可见的，我们可以在必要时(例如需要为`minSdkVersion`指定其他值或注册测试专用的运行侦听器)添加自己的清单文件，构建应用时，`Gradle`会将多个清单文件合并成一个清单。
+
+`Gradle`构建解析这些测试源代码的方式和解析应用源码的方式相同，我们可以利用这一点根据构建变体创建测试。
+
+当我们新建项目或添加应用模块时，`Andorid Studio`会创建以下所列的测试源目录，并在每个测试目录中加入一个示例测试文件。
+
+我们可以在`Project`窗口中看到如下所示：
+![project-window-tests_2-2_2x](https://user-images.githubusercontent.com/8588940/28399643-fd0a988c-6d40-11e7-9602-dafe50afc245.png)
+* （1）模拟测试
+* （2）本地JVM测试
+
+## 添加一个新的测试
+要创建一个本地单元测试或模拟测试， 我们可以按照以下步骤新建针对特定类或方法的测试:
+1. 打开需要测试的代码的`Java`文件；
+2. 点击需要测试的类名或方法名，然后按`Ctrl+Shift+T`;
+3. 在出现的菜单中，点击`Create New Test`;
+4. 在`Create Test`对话框中，编辑任何字段并选择任何要生成的方法，然后点击`OK`;
+5. 在`Choose Destination Directory`对话框中，点击需要创建的测试类型对应的目录:
+    * `anroidTest`对应模拟测试；
+    * `test`对应本地单元测试。
+
+然后点击OK。
+也可以按如下所述在相应测试目录中创建一个通用的`Java`文件:
+1. 在左侧的`Project`窗口中，点击下拉菜单并选择`Project`视图；
+2. 展开对应的模块文件夹和嵌套的`src`文件夹；
+    * 要添加本地单元测试，请展开`test`文件夹和嵌套的`java`文件夹；
+    * 要添加模拟测试，请展开`androidTest`文件夹和嵌套的`java`文件夹；
+3. 右键点击`Java`软件包目录并选择`New`>`Java Class`;
+4. 命名文件，然后点击`OK`.
+
+此外，必须在`build.gradle`文件中指定测试库依赖项:
+```gradle
+dependencies {
+    // Required for local unit tests (JUnit 4 framework)
+    testCompile 'junit:junit:4.12'
+
+    // Required for instrumented tests
+    androidTestCompile 'com.android.support:support-annotations:24.0.0'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+}
+```
+
+## 构建适用于构建变体的模拟测试
+如果项目包含的构建变体有唯一的`Source set`, 则我们需要相应的模拟测试源目录。
+
+在源目录中创建与构建变体对应的模拟测试有助于保持测试代码的条理性，也便于运行特定的构建变体的测试。
+
+要添加适用于构建变体的测试源目录，可只执行一下步骤：
+1. 在左侧的`Project`窗口中，点击下拉菜单并选择`Project`视图；
+2. 在相应的模块文件夹内，右键点击`src`文件夹，然后点击`New`>`Directory`;
+3. 输入`androidTestVariantName`作为目录名称
+    * 例如：如果构建类型名为`MyFlavor`，则目录名称应为`androidTestMyFlavor`
+
+然后点击`OK`,然后在该目录下创建一个`java`的目录。
+现在我们就可以向这个源目录中添加测试了，当到达`Choose Destination Directory`对话框时，选择新的变体测试源目录。
+`src/androidTest/`源目录中的模拟测试由所有构建变体共享，构建适用于应用的`MyFlavor`变体的测试APK时，`Gradle`会将`src/androidTest/`和`src/androidTestMyFlavor`这两个源目录合并。
+
+例如，下表显示的就是模拟测试文件所在源目录路径与应用代码源目录路径的对应关系：
+
+| 应用类的路径 | 对应模拟测试类的路径 |
+| ------------ | ------------ |
+| `src/main/java/Foo.java` | `src/androidTest/java/AndroidFooTest.java` |
+| `src/myFlavor/java/Foo.java` |  `src/androidTestMyFlavor/java/AndroidFooTest.java` |
+
+`Gradle`构建会合并和替换来自不同测试源目录的文件，这与它对应用源目录的处理方法完全相同，
+如： `androidTestMyFlavor`源目录中的`AndroidFooTest.java`文件会替换成`androidTest`源目录中的版本。
+
+为应用和测试源目录使用构建变体可以通过模拟依赖项创建封闭测试，实现不同环境下的模拟测试。
+
+
+## 运行测试
+1. 点击工具栏中的`Sync Project`，确保项目与`Gradle`的同步；
+2. 在`Project`窗口中，右键点击测试，或者在代码编辑器中，右键点击测试文件中的某个类名或方法名，然后点击`Run`来测试该类中的所有方法(要运行所有测试，右键点击测试目录，然后点击`Run tests`)
+
+默认情况表，测试运行时使用的是`Android Studio`默认的运行配置，如果需要更改某些运行设置（模拟器和部署选项）,可以在`Run/Debug Configurations`对话框中编辑运行配置（点击`Run`>`Edit Configurations`）。
+
+## 更改测试构建类型
+默认情况下，所有测试都是针对Debug构建类型运行，可以利用应用module下`build.gradle`文件中的`testBuildType`属性将其改为其他构建类型。
+
+如，需要针对`staging`构建类型运行测试：
+```gradle
+android {
+    ...
+    testBuildType "staging"
+}
+```

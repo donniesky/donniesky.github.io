@@ -1,0 +1,197 @@
+---
+layout:     post
+title:		"UI/应用的健身教练Monkey"
+subtitle:   "Monkey是一个可以在模拟器及真机上运行的程序，可以生成诸如用户点击、触摸或手势之类的伪随机事件流和许多系统相关的事件。"
+date:       2017-07-25 18:18:00
+author:     "donnieSky"
+catalog:	true
+header-img: "img/wallhaven-103658.jpg"
+tags:
+    - Android
+    - Testing
+    - Monkey
+---
+
+> Monkey是一个可以在模拟器及真机上运行的程序，可以生成诸如用户点击、触摸或手势之类的伪随机事件流和许多系统相关的事件。
+
+# 概念
+Monkey是一个可以在任何模拟器和真机上运行的命令行工具，它将用户的伪随机事件流发送给系统来进行应用程序的压力测试。
+
+Monkey中有很多命令，其中主要包括四大类：
+* 基本配置命令，例如：设置所需要的事件数目；
+* 操作的限制，如：将测试限制在一个单独的包中；
+* 事件的类型及触发频率；
+* 调试命令。
+
+当Monkey在运行的时候，它会生成相关事件并将其传递给系统；它还监控系统并遵照一下三个条件来做特别处理：
+* 如果Monkey限制了在一个或多个特定的包中运行，当系统尝试访问其他包时，这将会被阻止；
+* 如果应用程序崩溃或有未处理的异常信息，则Monkey将会终止并报告错误；
+* 如果应用程序生成应用的时候有未响应错误，Monkey将会终止并报告错误。
+
+根据所选的详细程度，我们还可看到相关Monkey的进度和事件的生成报告。
+
+# Monkey的基本使用
+我们可以使用开发工具上的命令行或脚本来启动Monkey，因为Monkey需要在模拟器或真机的环境中运行，所以必须从该环境中的shell中启动它，可以通过将每个命令替换为 `adb shell` 或直接输入`shell`并输入Monkey命令来执行相关操作。
+
+基本语法：
+```shell
+$ adb shell monkey [options] <event-count>
+```
+
+没有指定任何选项的时候，Monkey将以静态（non-verbose）模式启动，并将事件传递给目标软件包，一下是一个典型的命令行，它将启动应用程序并向应用发送500个伪随机事件：
+```shell
+$ adb shell monkey -p your.package.name -v 500
+```
+
+# 命令行参考
+下表列出了我们可以在Monkey命令行中包含的所有选项：
+<table>
+<tbody><tr>
+  <th>类别</th>
+  <th>命令</th>
+  <th>描述</th>
+</tr>
+
+<tr>
+<td rowspan="2">一般</td>
+<td><code>--help</code></td>
+<td>查看Monkey的使用指南。</td>
+</tr>
+
+<tr>
+<td><code>-v</code></td>
+<td>用于指定反馈信息级别（信息级别就是日志的详细程度），总共分3个级别，分别对应的参数如下表所示：
+
+日志级别 Level0 
+示例 <code>adb shellmonkey -p your.package.name  –v 100</code>
+说明 缺省值，仅提供启动提示、测试完成和最终结果等少量信息
+
+日志级别 Level 1
+示例 <code>adb shellmonkey -p your.package.name –v -v 100</code>
+说明  提供较为详细的日志，包括每个发送到Activity的事件信息
+
+日志级别 Level 2
+示例 <code>adb shellmonkey -p your.package.name –v -v –v 100</code>
+说明  最详细的日志，包括了测试中选中/未选中的Activity信息</td>
+</tr>
+
+<tr>
+<td rowspan="10">事件</td>
+<td><code>-s &lt;seed&gt;</code></td>
+<td>用于指定伪随机数生成器的seed值，如果seed相同，则两次Monkey测试所产生的事件序列也相同的。
+
+* 示例：
+Monkey测试1：<code>adb shell monkey -p your.package.name –s 10 100</code>
+Monkey 测试2：<code>adb shell monkey -p your.package.name –s 10 100</code>
+两次测试的效果是相同的，因为模拟的用户操作序列（每次操作按照一定的先后顺序所组成的一系列操作，即一个序列）是一样的。操作序列虽然是随机生成的，但是只要我们指定了相同的Seed值，就可以保证两次测试产生的随机操作序列是完全相同的，所以这个操作序列伪随机的；</td>
+</tr>
+
+<tr>
+<td><code>--throttle &lt;milliseconds&gt;</code></td>
+<td>用于指定用户操作（即事件）间的时延，单位是毫秒；
+* 示例：<code>adb shell monkey -p your.package.name –throttle 3000 100</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-touch &lt;percent&gt;</code></td>
+<td>参数：  --pct-｛+事件类别｝｛+事件类别百分比｝
+用于指定每种类别事件的数目百分比（在Monkey事件序列中，该类事件数目占总事件数目的百分比）
+
+</td>
+</tr>
+
+<tr>
+<td><code>--pct-motion &lt;percent&gt;</code></td>
+<td>调整动作事件的百分比(动作事件由屏幕上某处的一个down事件、一系列的伪随机事件和一个up事件组成)
+<code>adb shell monkey -p your.package.name --pct-motion 20 1000</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-trackball &lt;percent&gt;</code></td>
+<td>调整轨迹事件的百分比(轨迹事件由一个或几个随机的移动组成，有时还伴随有点击)
+<code>adb shell monkey -p your.package.name --pct-trackball 30 1000</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-nav &lt;percent&gt;</code></td>
+<td>调整“基本”导航事件的百分比(导航事件由来自方向输入设备的up/down/left/right组成)
+<code>adb shell monkey -p your.package.name --pct-nav 40 1000</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-majornav &lt;percent&gt;</code></td>
+<td>调整“主要”导航事件的百分比(这些导航事件通常引发图形界面中的动作，如：5-way键盘的中间按键、回退按键、菜单按键)
+<code>adb shell monkey -p your.package.name --pct-majornav 50 1000</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-syskeys &lt;percent&gt;</code></td>
+<td>调整“系统”按键事件的百分比(这些按键通常被保留，由系统使用，如Home、Back、Start Call、End Call及音量控制键)
+<code>adb shell monkey -p your.package.name --pct-syskeys 60 1000</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-appswitch &lt;percent&gt;</code></td>
+<td>调整启动Activity的百分比。在随机间隔里，Monkey将执行一个startActivity()调用，作为最大程度覆盖包中全部Activity的一种方法
+<code>adb shell monkey -p your.package.name --pct-appswitch 70 1000</code></td>
+</tr>
+
+<tr>
+<td><code>--pct-anyevent &lt;percent&gt;</code></td>
+<td>调整其它类型事件的百分比。它包罗了所有其它类型的事件，如：按键、其它不常用的设备按钮、等等
+<code>adb shell monkey -p your.package.name</code></td>
+</tr>
+
+<tr>
+<td rowspan="2">约束</td>
+<td><code>-p &lt;allowed-package-name&gt;</code></td>
+<td><code>adb shell monkey -p your.package.name –p your.package.pdfreader  -p your.package.photo.widgets 100 </code>如果以这种方式指定一个或多个软件包，Monkey将只允许系统访问这些软件包中的活动。 如果您的应用程序需要访问其他包中的活动（例如选择联系人），您还需要指定这些包。 如果不指定任何软件包，Monkey将允许系统在所有软件包中启动活动。 要指定多个包，请多次使用-p选项 - 每个包一个-p选项。</td>
+</tr>
+
+<tr>
+<td><code>-c &lt;main-category&gt;</code></td>
+<td>如果您以这种方式指定一个或多个类别，Monkey将只允许系统访问使用指定类别之一列出的活动。 如果不指定任何类别，则Monkey将选择使用类别Intent.CATEGORY_LAUNCHER或Intent.CATEGORY_MONKEY列出的活动。 要指定多个类别，请多次使用-c选项 - 每个类别一个-c选项。</td>
+</tr>
+
+<tr>
+<td rowspan="8">调试</td>
+<td><code>--dbg-no-events</code></td>
+<td>当指定时，Monkey将执行初始启动进入测试活动，但不会生成任何进一步的事件。 为了获得最佳效果，请结合-v，一个或多个程序包约束和非零事件延时，保持Monkey运行30秒或更长时间。 这提供了一个环境，您可以在其中监视应用程序调用的软件包转换。</td>
+</tr>
+
+<tr>
+<td><code>--hprof</code></td>
+<td>如果设置，此选项将立即在Monkey事件序列之前和之后生成性能分析报告。 这将在data/misc下产生大（〜5Mb）文件，因此请小心使用。 有关跟踪文件的更多信息，请参阅Traceview</td>
+</tr>
+
+<tr>
+<td><code>--ignore-crashes</code></td>
+<td>通常，当应用程序崩溃或遇到任何类型的未处理的异常时，Monkey将停止。 如果指定此选项，则Monkey将继续向系统发送事件，直到计数完成。</td>
+</tr>
+
+<tr>
+<td><code>--ignore-timeouts</code></td>
+<td>通常，当应用程序遇到任何类型的超时错误（如“应用程序无响应”对话框）时，Monkey将停止。 如果指定此选项，则Monkey将继续向系统发送事件，直到计数完成</td>
+</tr>
+
+<tr>
+<td><code>--ignore-security-exceptions</code></td>
+<td>通常，当应用程序遇到任何类型的权限错误时，Monkey将停止，例如，如果它尝试启动需要某些权限的活动。 如果指定此选项，则Monkey将继续向系统发送事件，直到计数完成。</td>
+</tr>
+
+<tr>
+<td><code>--kill-process-after-error</code></td>
+<td>通常，当Monkey由于错误而停止时，失败的应用程序将保持运行。 设置此选项时，它将通知系统停止发生错误的进程。 注意，在正常（成功）完成下，启动的进程不停止，并且设备在最后事件之后简单地保持在最后状态。</td>
+</tr>
+
+<tr>
+<td><code>--monitor-native-crashes</code></td>
+<td>Android系统原生代码中的监视和报告崩溃。 如果设置了-kill-process-after-error，系统将停止。</td>
+</tr>
+
+<tr>
+<td><code>--wait-dbg</code></td>
+<td>停止Monkey执行，直到调试器连接到它。</td>
+</tr>
+
+</tbody></table>

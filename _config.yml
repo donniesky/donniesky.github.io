@@ -1,0 +1,82 @@
+# Site settings
+title: DonnieSky
+SEOTitle: 我的博客 | DonnieSky
+header-img: img/home-bg.jpg
+email: qmhs414@gmail.com
+description: "Be confident, not arrogant."
+keyword: "donniesky, donnieSky, 博客，个人博客， Android, @donniesky, 个人网站"
+url: "https://donniesky.github.io/"              # your host, for absolute URL
+baseurl: ""         # for example, '/blog' if your blog hosted on 'host/blog'
+
+
+
+# SNS settings
+RSS: true
+weibo_username:     234524814
+github_username:    donniesky
+twitter_username:   donnieSky815
+facebook_username:  daniel.peter.37853
+instagram_username: donnie.view
+
+
+
+# Build settings
+# from 2016, 'pygments' is unsupported on GitHub Pages. Use 'rouge' for highlighting instead.
+highlighter: rouge
+permalink: pretty
+paginate: 10
+exclude: ["less","node_modules","Gruntfile.js","package.json","README.md", "_drafts", "raw", "vendor"]
+anchorjs: true                          # if you want to customize anchor. check out line:181 of `post.html`
+
+
+
+# Gems
+# from PR#40, to support local preview for Jekyll 3.0
+gems: [jekyll-paginate]
+
+# Markdown settings
+# replace redcarpet to kramdown,
+# although redcarpet can auto highlight code, the lack of header-id make the catalog impossible, so I switch to kramdown
+# document: http://jekyllrb.com/docs/configuration/#kramdown
+markdown: kramdown
+kramdown:
+  input: GFM                            # use Github Flavored Markdown !important
+
+
+
+# Disqus settings
+disqus_username: donnieSky
+
+
+# Analytics settings
+# Baidu Analytics
+ba_track_id: 074035fd95c355805aefdf2eb8b5942e
+# Google Analytics
+ga_track_id: 'UA-75867379-1'            # Format: UA-xxxxxx-xx
+ga_domain: donniesky.me
+
+
+
+# Sidebar settings
+sidebar: true                           # whether or not using Sidebar.
+sidebar-about-description: "听音乐 看电影 看动漫"
+sidebar-avatar: /img/avatar-donniesky.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
+
+
+
+# Featured Tags
+featured-tags: true                     # whether or not using Feature-Tags
+featured-condition-size: 1              # A tag will be featured if the size of it is more than this condition value
+
+# Progressive Web Apps
+chrome-tab-theme-color: "#000000"
+service-worker: true
+
+
+# Friends
+friends: [
+    {
+      title: "好3399",
+      href: "http://www.h3399.cn/"
+    }
+]
