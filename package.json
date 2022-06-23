@@ -9,7 +9,7 @@
         "grunt-contrib-less": "3.0.0",
         "grunt-contrib-watch": "1.1.0",
         "grunt-banner": "0.6.0",
-        "grunt-contrib-uglify": "5.0.1"
+        "grunt-contrib-uglify": "5.2.2"
     },
     "repository": {
         "type": "git",
